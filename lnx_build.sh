@@ -13,7 +13,7 @@ _CPP_VERSION="17"
 
 
 # python package
-pip install numpy
+pip install numpy pytest
 pip install PyOpenGL PyOpenGL_accelerate
 
 
@@ -28,7 +28,7 @@ cd ${_OLD_PATH}
 # glfw
 git clone https://github.com/glfw/glfw.git ./glfw
 cd glfw
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -65,7 +65,7 @@ cd ${_OLD_PATH}
 git clone https://github.com/pybind/pybind11.git ./pybind11
 cd pybind11
 git checkout v2.13.0
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DPYBIND11_NUMPY_1_ONLY=ON -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DDOWNLOAD_CATCH=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DPYBIND11_NUMPY_1_ONLY=ON -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DDOWNLOAD_CATCH=ON -DDOWNLOAD_EIGEN=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -90,7 +90,7 @@ cd
 # OpenEXR
 git clone https://github.com/AcademySoftwareFoundation/openexr.git ./openexr
 cd openexr
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython3_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DOPENEXR_BUILD_PYTHON=ON -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython3_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DOPENEXR_BUILD_PYTHON=ON -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -107,7 +107,7 @@ cd ${_OLD_PATH}
 git clone https://github.com/AcademySoftwareFoundation/OpenColorIO.git ./opencolorio
 cd opencolorio
 git checkout v2.1.3
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=ON -DOCIO_BUILD_APPS=ON -DOCIO_BUILD_PYTHON=ON -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF -DOCIO_BUILD_APPS=ON -DOCIO_BUILD_PYTHON=ON -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -142,7 +142,7 @@ cd ${_OLD_PATH}
 # git clone https://github.com/AcademySoftwareFoundation/OpenImageIO.git ./openimageio
 # cd openimageio
 # git checkout v2.5.8.0
-# cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DUSE_PYTHON=1 -DUSE_QT=0 -DBUILD_SHARED_LIBS=0 -DLINKSTATIC=1 -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+# cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DUSE_PYTHON=1 -DUSE_QT=0 -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=1 -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 # cd ${_OLD_PATH}
 ############################################################################
 
