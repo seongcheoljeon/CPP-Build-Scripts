@@ -12,7 +12,7 @@
 
 
 _OLD_PATH=$(PWD)
-_LIB_PATH="/home/vfx/development/library"
+_LIB_PATH="/home/user/development/library"
 _BUILD_TYPE="Release"
 _CPP_VERSION="17"
 _PYTHON_VERSION=3.10
@@ -64,10 +64,10 @@ cd ${_OLD_PATH}
 # boost
 git clone --recurse-submodules https://github.com/boostorg/boost.git ./boost
 cd boost
-git checkout boost-1.80.0
+git checkout boost-1.82.0
 git submodule update
 ./bootstrap.sh --with-python=python${_PYTHON_VERSION} --prefix=${_LIB_PATH}
-./b2 install cxxflags="-std=c++17" --prefix=${_LIB_PATH} -j$(nproc)
+./b2 install cxxflags="-std=c++17" --build-type=complete --prefix=${_LIB_PATH} -j$(nproc)
 cd ${_OLD_PATH}
 
 
@@ -117,79 +117,18 @@ cd ${_OLD_PATH}
 # OpenSubdiv
 git clone https://github.com/PixarAnimationStudios/OpenSubdiv.git ./opensubdiv
 cd opensubdiv
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DNO_PTEX=OFF -DNO_DOC=ON -DNO_OMP=ON -DNO_TBB=ON -DNO_CUDA=ON -DNO_OPENCL=ON -DNO_CLEW=ON -DGLFW_LOCATION=/home/vfx/development/library/lib64/libglfw3.a -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
-cd ${_OLD_PATH}
-
-
-# Icms2 (Little-CMS)
-git clone https://github.com/mm2/Little-CMS.git ./lcms2
-cd lcms2
-./configure --prefix=${_LIB_PATH}
-make -j$(nproc) && make install
-cd ${_OLD_PATH}
-
-
-# yaml-cpp
-git clone https://github.com/jbeder/yaml-cpp.git ./yaml-cpp
-cd yaml-cpp
-git checkout 0.8.0
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
-cd ${_OLD_PATH}
-
-
-# libexpat
-git clone https://github.com/libexpat/libexpat.git ./libexpat
-cd libexpat
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DNO_PTEX=OFF -DNO_DOC=ON -DNO_OMP=ON -DNO_TBB=ON -DNO_CUDA=ON -DNO_OPENCL=ON -DNO_CLEW=ON -DGLFW_LOCATION=/home/user/development/library/lib64/libglfw3.a -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
 
 # OpenColorIO
-# TODO: yaml-cpp 에러 발생
 git clone https://github.com/AcademySoftwareFoundation/OpenColorIO.git ./opencolorio
 cd opencolorio
 git checkout v2.1.3
 cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF -DOCIO_BUILD_APPS=ON -DOCIO_BUILD_PYTHON=ON -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
-
-
-############################################################################
-# OpenImageIO
-# libtiff
-git clone https://gitlab.com/libtiff/libtiff.git ./libtiff
-cd libtiff
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
-cd ${_OLD_PATH}
-
-# libjpeg-turbo
-git clone https://github.com/libjpeg-turbo/libjpeg-turbo ./libjpeg-turbo
-cd libjpeg-turbo
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DENABLE_SHARED=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
-cd ${_OLD_PATH}
-
-# OpenCV
-git clone https://github.com/opencv/opencv.git ./opencv
-cd opencv
-git checkout 4.9.0
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
-cd ${_OLD_PATH}
-
-# OpenImageIO 
-# TODO: 설치 안됨. (OpenColorIO, DCMTK, FFmpeg, GIF, Libheif, LibRaw, Jasper, LibRaw, OpenJPEG, OpenVDB, Ptex, WebP, oiio-images, openexr-images, fits-images, j2kp4files) 이것들 없어서 설치 안됨.
-# TODO: 의존성 너무 많다. 나중에 빌드하자.
-# git clone https://github.com/AcademySoftwareFoundation/OpenImageIO.git ./openimageio
-# cd openimageio
-# git checkout v2.5.8.0
-# cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DUSE_PYTHON=1 -DUSE_QT=0 -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=1 -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-# cd ${_OLD_PATH}
-############################################################################
 
 
 # alembic
@@ -229,7 +168,7 @@ cd ${_OLD_PATH}
 # OpenVDB
 git clone https://github.com/AcademySoftwareFoundation/openvdb.git ./openvdb
 cd openvdb
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DOPENVDB_BUILD_PYTHON_MODULE=ON -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DOPENVDB_BUILD_NANOVDB=ON -DNANOVDB_USE_OPENVDB=ON -DTBB_ROOT=/home/vfx/sources/onetbb -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DOPENVDB_BUILD_PYTHON_MODULE=ON -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DOPENVDB_BUILD_NANOVDB=ON -DNANOVDB_USE_OPENVDB=ON -DTBB_ROOT=/home/user/sources/onetbb -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -270,7 +209,7 @@ cd ${_OLD_PATH}
 # Vulkan SDK 다운로드 : https://vulkan.lunarg.com/
 git clone https://github.com/PixarAnimationStudios/OpenUSD.git ./openusd
 cd openusd
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH="${_LIB_PATH};/home/vfx/development/vulkan-1.3.296.0/x86_64" -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DPXR_VALIDATE_GENERATED_CODE=ON -DPXR_VALIDATE_GENERATED_CODE=ON -DPXR_BUILD_ALEMBIC_PLUGIN=ON -DPXR_BUILD_DRACO_PLUGIN=ON -DPXR_BUILD_GPU_SUPPORT=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH="${_LIB_PATH};/home/user/development/vulkan-1.3.296.0/x86_64" -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DPXR_VALIDATE_GENERATED_CODE=ON -DPXR_VALIDATE_GENERATED_CODE=ON -DPXR_BUILD_ALEMBIC_PLUGIN=ON -DPXR_BUILD_DRACO_PLUGIN=ON -DPXR_BUILD_GPU_SUPPORT=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -290,6 +229,6 @@ cd ${_OLD_PATH}
 git clone https://github.com/wdas/unf.git ./unf
 cd unf
 git checkout 0.7.0
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DUSD_ROOT=${_LIB_PATH} -DTBB_ROOT=/home/vfx/sources/onetbb -DBoost_ROOT=${_LIB_PATH} -DPython_ROOT=${_PYTHON_ROOT} -DCMAKE_PREFIX_PATH="${_LIB_PATH};/home/vfx/.local/share/Pytest;/home/vfx/.local/share/Sphinx" -DPYTEST_EXECUTABLE=/home/vfx/.local/bin/pytest -DSPHINX_EXECUTABLE=/home/vfx/.local/bin/sphinx-build
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DUSD_ROOT=${_LIB_PATH} -DTBB_ROOT=/home/user/sources/onetbb -DBoost_ROOT=${_LIB_PATH} -DPython_ROOT=${_PYTHON_ROOT} -DCMAKE_PREFIX_PATH="${_LIB_PATH};/home/user/.local/share/Pytest;/home/user/.local/share/Sphinx" -DPYTEST_EXECUTABLE=/home/user/.local/bin/pytest -DSPHINX_EXECUTABLE=/home/user/.local/bin/sphinx-build
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
