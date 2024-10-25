@@ -4,6 +4,11 @@
 # created at: 2024-10-25
 # modified at: 2024-10-25
 # description: C++ Build Script for Linux
+# example:
+#   export PYTHONPATH=$PYTHONPATH:/home/<user>/sources/USD/OpenUSD/dist/lib/python
+#   export LD_LIBRARY_PATH=/home/<user>/sources/USD/OpenUSD/dist/lib:/home/<user>/sources/boost/build/lib:$LD_LIBRARY_PATH
+#   ./usdview <usd file>
+
 
 
 _OLD_PATH=$(PWD)
@@ -11,7 +16,8 @@ _LIB_PATH="/home/vfx/development/library"
 _BUILD_TYPE="Release"
 _CPP_VERSION="17"
 _PYTHON_VERSION=3.10
-_PYTHON_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3
+_PYTHON_ROOT=/usr/local/pyenv/versions/3.10.10
+_PYTHON_EXECUTABLE=${_PYTHON_ROOT}/bin/python3
 
 
 # python package
@@ -280,5 +286,10 @@ cd ${_OLD_PATH}
 # USD Notice Framework
 # dnf install doxygen
 # pip install sphinxcontrib-doxylink sphinx_rtd_theme
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DUSD_ROOT=${_LIB_PATH} -DTBB_ROOT=/home/vfx/sources/USD/_source/oneTBB-2020_U3 -DBoost_ROOT=${_LIB_PATH} -DPython_ROOT=/usr/local/pyenv/versions/3.10.10 -DCMAKE_PREFIX_PATH="${_LIB_PATH};/home/vfx/.local/share/Pytest;/home/vfx/.local/share/Sphinx" -DPYTEST_EXECUTABLE=/home/vfx/.local/bin/pytest -DSPHINX_EXECUTABLE=/home/vfx/.local/bin/sphinx-build
-cmake --build build --target install
+# TODO: 다른 디렉토리에다가 설치하자!! 추후 이름 변경할 수 있으니!
+git clone https://github.com/wdas/unf.git ./unf
+cd unf
+git checkout 0.7.0
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DUSD_ROOT=${_LIB_PATH} -DTBB_ROOT=/home/vfx/sources/onetbb -DBoost_ROOT=${_LIB_PATH} -DPython_ROOT=${_PYTHON_ROOT} -DCMAKE_PREFIX_PATH="${_LIB_PATH};/home/vfx/.local/share/Pytest;/home/vfx/.local/share/Sphinx" -DPYTEST_EXECUTABLE=/home/vfx/.local/bin/pytest -DSPHINX_EXECUTABLE=/home/vfx/.local/bin/sphinx-build
+cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
+cd ${_OLD_PATH}
