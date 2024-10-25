@@ -10,6 +10,8 @@ _OLD_PATH=$(PWD)
 _LIB_PATH="/home/vfx/development/library"
 _BUILD_TYPE="Release"
 _CPP_VERSION="17"
+_PYTHON_VERSION=3.10
+_PYTHON_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3
 
 
 # python package
@@ -44,19 +46,21 @@ cd ${_OLD_PATH}
 
 
 # IntelTBB
+# v2020.3은 cmake 빌드할 필요 없음.
 git clone https://github.com/oneapi-src/oneTBB.git ./onetbb
 cd onetbb
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DTBB_TEST=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
+git checkout v2020.3
+# cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DTBB_TEST=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+# cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
 
 # boost
 git clone --recurse-submodules https://github.com/boostorg/boost.git ./boost
 cd boost
-git checkout boost-1.82.0
+git checkout boost-1.80.0
 git submodule update
-./bootstrap.sh --with-python=python3.10 --prefix=${_LIB_PATH}
+./bootstrap.sh --with-python=python${_PYTHON_VERSION} --prefix=${_LIB_PATH}
 ./b2 install cxxflags="-std=c++17" --prefix=${_LIB_PATH} -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -65,7 +69,7 @@ cd ${_OLD_PATH}
 git clone https://github.com/pybind/pybind11.git ./pybind11
 cd pybind11
 git checkout v2.13.0
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DPYBIND11_NUMPY_1_ONLY=ON -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DDOWNLOAD_CATCH=ON -DDOWNLOAD_EIGEN=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DPYBIND11_NUMPY_1_ONLY=ON -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DDOWNLOAD_CATCH=ON -DDOWNLOAD_EIGEN=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -82,7 +86,7 @@ cd ${_OLD_PATH}
 git clone https://github.com/AcademySoftwareFoundation/Imath.git ./imath
 cd imath
 git checkout v3.1.9
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DPython3_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DPYTHON=ON -DBoost_NO_BOOST_CMAKE=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DPYTHON=ON -DBoost_NO_BOOST_CMAKE=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd  
 
@@ -90,7 +94,16 @@ cd
 # OpenEXR
 git clone https://github.com/AcademySoftwareFoundation/openexr.git ./openexr
 cd openexr
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython3_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DOPENEXR_BUILD_PYTHON=ON -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DOPENEXR_BUILD_PYTHON=ON -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
+cd ${_OLD_PATH}
+
+
+# PTex
+git clone https://github.com/wdas/ptex.git ./ptex
+cd ptex
+git checkout v2.4.2
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -98,16 +111,42 @@ cd ${_OLD_PATH}
 # OpenSubdiv
 git clone https://github.com/PixarAnimationStudios/OpenSubdiv.git ./opensubdiv
 cd opensubdiv
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -D NO_PTEX=1 -D NO_DOC=1 -D NO_OMP=1 -D NO_TBB=1 -D NO_CUDA=1 -D NO_OPENCL=1 -D NO_CLEW=1 -D GLFW_LOCATION=/home/vfx/development/library/lib64/libglfw3.a -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DNO_PTEX=OFF -DNO_DOC=ON -DNO_OMP=ON -DNO_TBB=ON -DNO_CUDA=ON -DNO_OPENCL=ON -DNO_CLEW=ON -DGLFW_LOCATION=/home/vfx/development/library/lib64/libglfw3.a -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
+cd ${_OLD_PATH}
+
+
+# Icms2 (Little-CMS)
+git clone https://github.com/mm2/Little-CMS.git ./lcms2
+cd lcms2
+./configure --prefix=${_LIB_PATH}
+make -j$(nproc) && make install
+cd ${_OLD_PATH}
+
+
+# yaml-cpp
+git clone https://github.com/jbeder/yaml-cpp.git ./yaml-cpp
+cd yaml-cpp
+git checkout 0.8.0
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
+cd ${_OLD_PATH}
+
+
+# libexpat
+git clone https://github.com/libexpat/libexpat.git ./libexpat
+cd libexpat
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
 
 # OpenColorIO
+# TODO: yaml-cpp 에러 발생
 git clone https://github.com/AcademySoftwareFoundation/OpenColorIO.git ./opencolorio
 cd opencolorio
 git checkout v2.1.3
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF -DOCIO_BUILD_APPS=ON -DOCIO_BUILD_PYTHON=ON -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF -DOCIO_BUILD_APPS=ON -DOCIO_BUILD_PYTHON=ON -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -117,7 +156,7 @@ cd ${_OLD_PATH}
 # libtiff
 git clone https://gitlab.com/libtiff/libtiff.git ./libtiff
 cd libtiff
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF -DPython3_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=OFF -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -132,7 +171,7 @@ cd ${_OLD_PATH}
 git clone https://github.com/opencv/opencv.git ./opencv
 cd opencv
 git checkout 4.9.0
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython3_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -142,7 +181,7 @@ cd ${_OLD_PATH}
 # git clone https://github.com/AcademySoftwareFoundation/OpenImageIO.git ./openimageio
 # cd openimageio
 # git checkout v2.5.8.0
-# cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DUSE_PYTHON=1 -DUSE_QT=0 -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=1 -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+# cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DUSE_PYTHON=1 -DUSE_QT=0 -DBUILD_SHARED_LIBS=OFF -DLINKSTATIC=1 -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 # cd ${_OLD_PATH}
 ############################################################################
 
@@ -151,7 +190,7 @@ cd ${_OLD_PATH}
 git clone https://github.com/alembic/alembic.git ./alembic
 cd alembic
 git checkout 1.8.5
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DUSE_PYALEMBIC=ON -DPYALEMBIC_PYTHON_MAJOR=3 -DPython3_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DUSE_PYALEMBIC=ON -DPYALEMBIC_PYTHON_MAJOR=3 -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -165,17 +204,18 @@ cd ${_OLD_PATH}
 
 
 # Eigen3
-git clone https://gitlab.com/libeigen/eigen.git ./eigen
-cd eigen
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
-cd ${_OLD_PATH}
+# TODO: 위에서 설치해서? 또 설치할 필요 없음.
+# git clone https://gitlab.com/libeigen/eigen.git ./eigen
+# cd eigen
+# cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+# cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
+# cd ${_OLD_PATH}
 
 
 # nanobind
 git clone https://github.com/wjakob/nanobind.git ./nanobind
 cd nanobind
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -183,16 +223,7 @@ cd ${_OLD_PATH}
 # OpenVDB
 git clone https://github.com/AcademySoftwareFoundation/openvdb.git ./openvdb
 cd openvdb
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DOPENVDB_BUILD_PYTHON_MODULE=ON -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DOPENVDB_BUILD_NANOVDB=ON -DNANOVDB_USE_OPENVDB=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
-cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
-cd ${_OLD_PATH}
-
-
-# PTex
-git clone https://github.com/wdas/ptex.git ./ptex
-cd ptex
-git checkout v2.4.2
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DOPENVDB_BUILD_PYTHON_MODULE=ON -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DOPENVDB_BUILD_NANOVDB=ON -DNANOVDB_USE_OPENVDB=ON -DTBB_ROOT=/home/vfx/sources/onetbb -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -208,7 +239,7 @@ cd ${_OLD_PATH}
 # Draco
 git clone https://github.com/google/draco.git ./draco
 cd draco
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
@@ -217,20 +248,37 @@ cd ${_OLD_PATH}
 git clone https://github.com/AcademySoftwareFoundation/MaterialX.git ./materialx
 cd materialx
 git submodule update --init --recursive 
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_BUILD_GRAPH_EDITOR=ON -DPython_EXECUTABLE=/usr/local/pyenv/versions/3.10.10/bin/python3 -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_BUILD_GRAPH_EDITOR=ON -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 
 
 # OpenShadingLanguage
-git clone https://github.com/AcademySoftwareFoundation/OpenShadingLanguage.git ./osl
-cd osl
-
-cd ${_OLD_PATH}
+# TODO: OpenImageIO 필요해서 설치 안됨.
+# git clone https://github.com/AcademySoftwareFoundation/OpenShadingLanguage.git ./osl
+# cd osl
+# cd ${_OLD_PATH}
 
 
 # OpenUSD
+# Vulkan SDK 다운로드 : https://vulkan.lunarg.com/
 git clone https://github.com/PixarAnimationStudios/OpenUSD.git ./openusd
 cd openusd
-
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH="${_LIB_PATH};/home/vfx/development/vulkan-1.3.296.0/x86_64" -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DPXR_VALIDATE_GENERATED_CODE=ON -DPXR_VALIDATE_GENERATED_CODE=ON -DPXR_BUILD_ALEMBIC_PLUGIN=ON -DPXR_BUILD_DRACO_PLUGIN=ON -DPXR_BUILD_GPU_SUPPORT=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
+
+
+# GoogleTest
+git clone https://github.com/google/googletest.git ./googletest
+cd googletest
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DCMAKE_PREFIX_PATH=${_LIB_PATH} -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
+cd ${_OLD_PATH}
+
+
+# USD Notice Framework
+# dnf install doxygen
+# pip install sphinxcontrib-doxylink sphinx_rtd_theme
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DUSD_ROOT=${_LIB_PATH} -DTBB_ROOT=/home/vfx/sources/USD/_source/oneTBB-2020_U3 -DBoost_ROOT=${_LIB_PATH} -DPython_ROOT=/usr/local/pyenv/versions/3.10.10 -DCMAKE_PREFIX_PATH="${_LIB_PATH};/home/vfx/.local/share/Pytest;/home/vfx/.local/share/Sphinx" -DPYTEST_EXECUTABLE=/home/vfx/.local/bin/pytest -DSPHINX_EXECUTABLE=/home/vfx/.local/bin/sphinx-build
+cmake --build build --target install
