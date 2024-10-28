@@ -64,7 +64,7 @@ cd ${_OLD_PATH}
 # boost
 git clone --recurse-submodules https://github.com/boostorg/boost.git ./boost
 cd boost
-git checkout boost-1.82.0
+git checkout boost-1.85.0
 git submodule update
 ./bootstrap.sh --with-python=python${_PYTHON_VERSION} --prefix=${_LIB_PATH}
 ./b2 install cxxflags="-std=c++17" --build-type=complete --prefix=${_LIB_PATH} -j$(nproc)
@@ -74,7 +74,7 @@ cd ${_OLD_PATH}
 # pybind11
 git clone https://github.com/pybind/pybind11.git ./pybind11
 cd pybind11
-git checkout v2.13.0
+git checkout v2.10.4
 cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DPYBIND11_NUMPY_1_ONLY=ON -DPython_EXECUTABLE=${_PYTHON_EXECUTABLE} -DDOWNLOAD_CATCH=ON -DDOWNLOAD_EIGEN=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
@@ -91,7 +91,7 @@ cd ${_OLD_PATH}
 # Imath
 git clone https://github.com/AcademySoftwareFoundation/Imath.git ./imath
 cd imath
-git checkout v3.1.9
+git checkout v3.1.7
 cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DPython3_EXECUTABLE=${_PYTHON_EXECUTABLE} -DPYTHON=ON -DBoost_NO_BOOST_CMAKE=OFF -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd  
