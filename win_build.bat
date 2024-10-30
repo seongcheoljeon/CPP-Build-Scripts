@@ -7,24 +7,28 @@ setlocal
 :: description: C++ Build Script for Windows
 
 set _OLD_PATH=%cd%
+set _SRC_PATH=C:\\Users\\d2306010001\\source\\repos\\usd
 set _LIB_PATH=C:\\developments\\OpenUSD
 set _BUILD_TYPE=Release
 set _CPP_VERSION=17
-set _PYTHON_VERSION=3.10
-set _PYTHON_ROOT=C:\\Users\\d2306010001\\.pyenv\\pyenv-win\\versions\\3.10.10
+set _PYTHON_VERSION=3.11
+set _PYTHON_ROOT=C:\\Users\\d2306010001\\.pyenv\\pyenv-win\\versions\\3.11.9
 set _PYTHON_EXECUTABLE=%_PYTHON_ROOT%\\python3.exe
 set _PYTHON_INCLUDE=%_PYTHON_ROOT%\\include
 set _PYTHON_LIBS=%_PYTHON_ROOT%\\libs
 
-set _TBB_ROOT_DIR=C:/Users/d2306010001/source/repos/usd/onetbb
-set _TBB_INCLUDE_DIR=%_TBB_ROOT_DIR%/include
-set _TBB_LIBRARY=%_TBB_ROOT_DIR%/build/windows_intel64_cl_vc14_release
+set _TBB_ROOT_DIR=%_SRC_PATH%\\onetbb
+set _TBB_INCLUDE_DIR=%_TBB_ROOT_DIR%\\include
+set _TBB_LIBRARY=%_TBB_ROOT_DIR%\\build\\windows_intel64_cl_vc14_release
 
-set _UNF_LIB_PATH=./dist
+set _BOOST_STATIC_BUILD_DIR=%_SRC_PATH%\\boost\\build_static
+set _BOOST_SHARED_BUILD_DIR=%_SRC_PATH%\\boost\\build_shared
+
+set _UNF_LIB_PATH=.\dist
 
 set PATH=%_PYTHON_ROOT%\\Scripts;%PATH%
 
-:: -DCMAKE_TOOLCHAIN_FILE=C:/developments/vcpkg/scripts/buildsystems/vcpkg.cmake
+:: -DCMAKE_TOOLCHAIN_FILE=C:\\developments\\vcpkg\\scripts\\buildsystems\\vcpkg.cmake
 
 
 :: Python package
@@ -68,7 +72,7 @@ cd %_OLD_PATH%
 :: zlib
 git clone https://github.com/madler/zlib.git .\zlib
 cd zlib
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
 cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
 
@@ -76,43 +80,49 @@ cd %_OLD_PATH%
 :: boost
 :: project-config.jam 파일에 파이썬 경로 추가해야 함.
 :: using python 
-::  : 3.10 
-::  : C:\\Users\\d2306010001\\.pyenv\\pyenv-win\\versions\\3.10.10\\python3.exe 
-::  : C:\\Users\\d2306010001\\.pyenv\\pyenv-win\\versions\\3.10.10\\include 
-::  : C:\\Users\\d2306010001\\.pyenv\\pyenv-win\\versions\\3.10.10\\libs 
+::  : 3.11 
+::  : C:\\Users\\d2306010001\\.pyenv\\pyenv-win\\versions\\3.11.9\\python3.exe 
+::  : C:\\Users\\d2306010001\\.pyenv\\pyenv-win\\versions\\3.11.9\\include 
+::  : C:\\Users\\d2306010001\\.pyenv\\pyenv-win\\versions\\3.11.9\\libs 
 ::  : <address-model>64
 ::  ;
 
 :: link 기본값은 static
 :: b2 install link=static cxxflags="-std=c++17" address-model=64 --build-type=complete --prefix=%_LIB_PATH%/static -j%NUMBER_OF_PROCESSORS%
 :: b2 install link=shared cxxflags="-std=c++17" address-model=64 --build-type=complete --prefix=%_LIB_PATH%/dynamic -j%NUMBER_OF_PROCESSORS%
+:: --layout=system 옵션을 사용하면 Boost라이브러리 이름에서 컴파일러 버전 및 빌드 옵션 정보를 생략하여 일관된 파일 이름을 유지할 수 있다. 따라서 정적 및 동적 라이브러리 링크 단계에서 편리하다.
 
 git clone --recurse-submodules https://github.com/boostorg/boost.git .\boost
 cd boost
 git checkout boost-1.82.0
 git submodule update
 .\bootstrap.bat --with-toolset=msvc --with-python=python%_PYTHON_EXECUTABLE% --prefix=%_LIB_PATH%
-.\b2 install cxxflags="-std=c++17" address-model=64 --build-type=complete --prefix=%_LIB_PATH% -j%NUMBER_OF_PROCESSORS%
+
+@REM .\b2 install link=static cxxflags="-std=c++17" threading=multi address-model=64 --build-type=complete --build-dir=%_BOOST_STATIC_BUILD_DIR% --layout=system --prefix=%_LIB_PATH%/static -j%NUMBER_OF_PROCESSORS%
+@REM .\b2 install link=shared cxxflags="-std=c++17" threading=multi address-model=64 --build-type=complete --build-dir=%_BOOST_SHARED_BUILD_DIR% --layout=system --prefix=%_LIB_PATH%/shared -j%NUMBER_OF_PROCESSORS%
+
+.\b2 install cxxflags="-std=c++17" threading=multi link=shared address-model=64 --build-type=complete --prefix=%_LIB_PATH% -j%NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
 
 
 :: pybind11
-git clone https://github.com/pybind/pybind11.git .\pybind11
-cd pybind11
-git checkout v2.13.6
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DPYBIND11_NUMPY_1_ONLY=ON -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DDOWNLOAD_CATCH=ON -DDOWNLOAD_EIGEN=ON -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
-cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
-cd %_OLD_PATH%
+:: MaterialX에서 자동으로 설치됨.
+@REM git clone https://github.com/pybind/pybind11.git .\pybind11
+@REM cd pybind11
+@REM git checkout v2.12.0
+@REM cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DPYBIND11_NUMPY_1_ONLY=ON -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DDOWNLOAD_CATCH=ON -DDOWNLOAD_EIGEN=ON -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+@REM cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
+@REM cd %_OLD_PATH%
 
 
 :: Imath
 :: TODO: python 빌드 안됨. 그래서 OFF로 설정함.
-@REM git clone https://github.com/AcademySoftwareFoundation/Imath.git .\imath
-@REM cd imath
-@REM git checkout v3.1.7
-@REM cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DPYTHON=ON -DBoost_NO_BOOST_CMAKE=OFF -DPYBIND11=ON -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DIMATH_CXX_STANDARD=%_CPP_VERSION% -DCMAKE_CXX_FLAGS="/bigobj" -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DPython3_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
-@REM cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
-@REM cd %_OLD_PATH%
+git clone https://github.com/AcademySoftwareFoundation/Imath.git .\imath
+cd imath
+git checkout v3.1.12
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DPYTHON=ON -DBoost_NO_BOOST_CMAKE=ON -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DIMATH_CXX_STANDARD=%_CPP_VERSION% -DCMAKE_CXX_FLAGS="/bigobj" -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DPython3_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
+cd %_OLD_PATH%
 
 
 :: libdeflate
@@ -127,6 +137,7 @@ cd %_OLD_PATH%
 :: openexr에서 imath 자동으로 다운로드하고 설치함
 git clone https://github.com/AcademySoftwareFoundation/openexr.git .\openexr
 cd openexr
+git checkout v3.2.4
 cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DOPENEXR_BUILD_PYTHON=OFF -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DOPENEXR_INSTALL_DOCS=OFF -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON -DBUILD_WEBSITE=OFF -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
 cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
@@ -145,7 +156,7 @@ cd %_OLD_PATH%
 git clone https://github.com/PixarAnimationStudios/OpenSubdiv.git .\opensubdiv
 cd opensubdiv
 git checkout v3_6_0
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DNO_PTEX=OFF -DNO_DOC=ON -DNO_OMP=ON -DNO_TBB=ON -DNO_CUDA=OFF -DNO_OPENCL=ON -DNO_CLEW=ON -DGLFW_LOCATION=C:\developments\OpenUSD\lib\glfw3.lib -DBUILD_SHARED_LIBS=OFF -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -A x64 -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DNO_PTEX=ON -DNO_DOC=ON -DNO_OMP=ON -DNO_TBB=ON -DNO_CUDA=OFF -DNO_OPENCL=ON -DNO_CLEW=ON -DGLFW_LOCATION=C:\developments\OpenUSD\lib\glfw3.lib -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -A x64 -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
 cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
 
@@ -153,7 +164,7 @@ cd %_OLD_PATH%
 :: OpenColorIO
 git clone https://github.com/AcademySoftwareFoundation/OpenColorIO.git .\opencolorio
 cd opencolorio
-git checkout v2.1.3
+git checkout v2.3.2
 cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DBUILD_SHARED_LIBS=OFF -DOCIO_BUILD_APPS=ON -DOCIO_BUILD_PYTHON=ON -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
 cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
@@ -163,7 +174,7 @@ cd %_OLD_PATH%
 git clone https://github.com/alembic/alembic.git .\alembic
 cd alembic
 git checkout 1.8.5
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DUSE_PYALEMBIC=OFF -DPYALEMBIC_PYTHON_MAJOR=3 -DPython3_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DCMAKE_TOOLCHAIN_FILE=C:/developments/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DUSE_PYALEMBIC=OFF -DPYALEMBIC_PYTHON_MAJOR=3 -DPython3_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
 cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
 
@@ -197,7 +208,8 @@ cd %_OLD_PATH%
 :: OpenVDB
 git clone https://github.com/AcademySoftwareFoundation/openvdb.git .\openvdb
 cd openvdb
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DOPENVDB_BUILD_PYTHON_MODULE=ON -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DOPENVDB_BUILD_NANOVDB=ON -DNANOVDB_USE_OPENVDB=ON -DTBB_ROOT=%_TBB_ROOT_DIR% -DTBB_INCLUDEDIR=%_TBB_INCLUDE_DIR% -DTBB_LIBRARYDIR=%_TBB_LIBRARY% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+git checkout v11.0.0
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DBoost_USE_STATIC_LIBS=OFF -DOPENVDB_BUILD_PYTHON_MODULE=ON -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DOPENVDB_BUILD_NANOVDB=ON -DNANOVDB_USE_OPENVDB=ON -DTBB_ROOT=%_TBB_ROOT_DIR% -DTBB_INCLUDEDIR=%_TBB_INCLUDE_DIR% -DTBB_LIBRARYDIR=%_TBB_LIBRARY% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
 cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
 
@@ -223,9 +235,9 @@ cd %_OLD_PATH%
 :: MaterialX
 git clone https://github.com/AcademySoftwareFoundation/MaterialX.git .\materialx
 cd materialx
-git checkout v1.39.1
+git checkout v1.38.7
 git submodule update --init --recursive 
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_BUILD_GRAPH_EDITOR=ON -DPYBIND11_FINDPYTHON=ON -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DNANOGUI_BUILD_PYTHON=ON -DMATERIALX_BUILD_PYTHON=ON -DMATERIALX_BUILD_VIEWER=ON -DMATERIALX_BUILD_GRAPH_EDITOR=ON -DPYBIND11_FINDPYTHON=ON -DPython_EXECUTABLE=%_PYTHON_EXECUTABLE% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
 cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
 
@@ -243,8 +255,8 @@ cd %_OLD_PATH%
 :: OpenUSD
 git clone https://github.com/PixarAnimationStudios/OpenUSD.git .\openusd
 cd openusd
-git checkout v24.05
-cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DPython3_EXECUTABLE=%_PYTHON_EXECUTABLE%  -DPXR_VALIDATE_GENERATED_CODE=OFF -DPXR_BUILD_ALEMBIC_PLUGIN=ON -DPXR_ENABLE_PTEX_SUPPORT=OFF -DPXR_BUILD_DRACO_PLUGIN=ON -DPXR_BUILD_GPU_SUPPORT=ON -DPXR_ENABLE_VULKAN_SUPPORT=OFF -DTBB_ROOT_DIR=%_TBB_ROOT_DIR% -DTBB_INCLUDE_DIR=%_TBB_INCLUDE_DIR% -DTBB_LIBRARY=%_TBB_LIBRARY% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+git checkout v24.03
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DCMAKE_PREFIX_PATH=%_LIB_PATH% -DPython3_EXECUTABLE=%_PYTHON_EXECUTABLE%  -DPXR_VALIDATE_GENERATED_CODE=OFF -DPXR_BUILD_ALEMBIC_PLUGIN=ON -DPXR_ENABLE_MATERIALX_SUPPORT=OFF -DPXR_BUILD_GPU_SUPPORT=ON -DPXR_ENABLE_VULKAN_SUPPORT=OFF -DPXR_BUILD_PYTHON_DOCUMENTATION=ON -DPXR_ENABLE_OPENVDB_SUPPORT=ON -DTBB_ROOT_DIR=%_TBB_ROOT_DIR% -DTBB_INCLUDE_DIR=%_TBB_INCLUDE_DIR% -DTBB_LIBRARY=%_TBB_LIBRARY% -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
 cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
 cd %_OLD_PATH%
 
