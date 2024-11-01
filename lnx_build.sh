@@ -11,7 +11,7 @@
 
 
 
-_OLD_PATH=$(PWD)
+_OLD_PATH=$(pwd)
 _LIB_PATH="/home/user/development/library"
 _BUILD_TYPE="Release"
 _CPP_VERSION="17"
@@ -29,6 +29,14 @@ pip install PyOpenGL PyOpenGL_accelerate
 git clone https://github.com/fmtlib/fmt.git ./fmt
 cd fmt
 cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
+cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
+cd ${_OLD_PATH}
+
+
+# spdlog
+git clone https://github.com/gabime/spdlog.git ./spdlog
+cd spdlog
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=${_LIB_PATH} -DCMAKE_BUILD_TYPE=${_BUILD_TYPE} -DSPDLOG_BUILD_ALL=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_STANDARD=${_CPP_VERSION}
 cmake --build build --config ${_BUILD_TYPE} --target install -j$(nproc)
 cd ${_OLD_PATH}
 

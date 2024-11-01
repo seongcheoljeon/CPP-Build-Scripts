@@ -41,6 +41,14 @@ cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCES
 cd %_OLD_PATH%
 
 
+:: spdlog
+git clone https://github.com/gabime/spdlog.git .\spdlog
+cd spdlog
+cmake -S. -Bbuild -DCMAKE_INSTALL_PREFIX=%_LIB_PATH% -DCMAKE_BUILD_TYPE=%_BUILD_TYPE% -DSPDLOG_BUILD_ALL=ON -DBUILD_SHARED_LIBS=ON -DCMAKE_CXX_STANDARD=%_CPP_VERSION%
+cmake --build build --config %_BUILD_TYPE% --target install -j %NUMBER_OF_PROCESSORS%
+cd ${_OLD_PATH}
+
+
 :: glfw
 git clone https://github.com/glfw/glfw.git .\glfw
 cd glfw
